@@ -7,6 +7,6 @@ exports.login = {
   'port': 465,
   'secure': true,
   'from': '"WRDSMTH Update" <new.wrdsmth.for.sale@gmail.com>',
-  'to': 'hermanj13@me.com',
-  'phone': '6154286053@tmomail.net'
+  'to': 'hermanj13@me.com, lexipearl91@gmail.com',
+  'phone': '6154286053@tmomail.net, 4846202149@msg.fi.google.com'
 }

@@ -85,21 +85,21 @@ app.get('/', function(req, res) {
             var printsRef = database.ref().child('wrdsmthPrints')
             printsRef.child(prints[i]).set(newPrint);
             allNewPrints[savedPrints[i]] = newPrint;
-            // // send text
-            // transporter.sendMail(textOptions, (error, info) => {
-            //   if (error) {
-            //     console.log(error);
-            //   }
-            //   console.log('text sent!')
-            // })
-            //
-            // // send email
-            // transporter.sendMail(emailOptions, (error, info) => {
-            //   if (error) {
-            //     console.log(error);
-            //   }
-            //   console.log('email sent!')
-            // })
+            // send text
+            transporter.sendMail(textOptions, (error, info) => {
+              if (error) {
+                console.log(error);
+              }
+              console.log('text sent!')
+            })
+
+            // send email
+            transporter.sendMail(emailOptions, (error, info) => {
+              if (error) {
+                console.log(error);
+              }
+              console.log('email sent!')
+            })
           };
         });
       };
@@ -111,19 +111,3 @@ app.get('/', function(req, res) {
 
 app.listen('8000');
 exports = module.exports = app;
-
-
-// transporter.sendMail(textOptions, (error, info) =>{
-//   if (error){
-//     console.log(error);
-//   }
-//   console.log('text sent!')
-// })
-//
-// send email
-// transporter.sendMail(emailOptions, (error, info) =>{
-//   if (error){
-//     console.log(error);
-//   }
-//   console.log('email sent!')
-// })

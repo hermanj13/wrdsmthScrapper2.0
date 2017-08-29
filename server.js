@@ -3,13 +3,15 @@ const osmosis = require('osmosis');
 var app = express();
 var firebase = require('firebase');
 var nodemailer = require('nodemailer');
-
+var Twitter = require('twitter');
 
 var contactInfo = require('./classified/contact');
 var wrdsmthEmailClient = contactInfo.wrdsmth
 var yifyEmailClient = contactInfo.yify
+var marriottClient = contactInfo.marriott
 var api = require('./classified/api');
 var config = api.config;
+var twitterInfo = api.twitter
 firebase.initializeApp(config);
 var database = firebase.database();
 
@@ -32,10 +34,21 @@ var yifyEmailOptions = {
   from: yifyEmailClient.from,
   to: yifyEmailClient.to,
 }
+
+var yifyTextOptions = {
+  from: yifyEmailClient.from,
+  to: yifyEmailClient.phone
+}
+
 var wrdsmthTextOptions = {
   from: wrdsmthEmailClient.from,
   to: wrdsmthEmailClient.phone,
 };
+
+var marriottTextOptions = {
+  from: marriottClient.from,
+  to: marriottClient.phone
+}
 
 app.get('/wrdsmth', function(req, res) {
   osmosis
@@ -135,7 +148,6 @@ app.get('/movies', function(req, res) {
         database.ref('/yify').child(title[i]).once("value", function(snapshot) {
           var userData = snapshot.val();
           if (userData) {
-            console.log('in database')
           } else {
             var newMovie = {
               title: title[i],
@@ -156,6 +168,22 @@ app.get('/movies', function(req, res) {
               }
               console.log('email sent!');
             })
+
+            marriottTextOptions.subject = 'New YIFY Movie';
+            marriottTextOptions.text = 'Movie name: ' + saveTitle[i] + "\nYear: "
+            + year[i] + '\nRating: ' + rating[i];
+            marriottTextOptions.attachments = [{
+              filename: 'image.png',
+              path: image[i],
+              cid: marriottTextOptions.from
+            }]
+            // send text
+            transporter.sendMail(marriottTextOptions, (error, info) => {
+              if (error) {
+                console.log(error);
+              }
+              console.log('text sent!');
+            })
           };
         });
       };
@@ -164,6 +192,62 @@ app.get('/movies', function(req, res) {
       res.send('YIFY Scrapper: Done')
     });
 });
+
+app.get('/marriott', function(req,res){
+  var client = new Twitter({
+    consumer_key: twitterInfo.consumer_key,
+    consumer_secret: twitterInfo.consumer_secret,
+    access_token_key: twitterInfo.access_token_key,
+    access_token_secret: twitterInfo.access_token_secret
+  })
+  params= {q: '#RewardsPoints, members exclude:nativeretweets exclude:retweets -Surprise, -welcome   from:MarriottRewards'}
+  client.get('search/tweets', params, function(error, tweets, repsponse){
+    if(error){
+      console.log(error)
+    }
+    else{
+      var tweetObjects = []
+      for(let i = 0; i< tweets.statuses.length; i++){
+        var newTweet = {
+          id : tweets.statuses[i].id,
+          text: tweets.statuses[i].text,
+          link : tweets.statuses[i].entities.urls[0].url,
+          image: 'https://pbs.twimg.com/profile_images/823721088098205698/djUfPGlW_400x400.jpg'
+        }
+        tweetObjects.push(newTweet)
+      }
+        for(let i = 0; i < tweetObjects.length; i++){
+          database.ref('/marriott').child(tweetObjects[i].id).once("value", function(snapshot) {
+            var userData = snapshot.val();
+            if (userData) {
+              console.log('in database');
+            } else {
+              var tweetRef = database.ref().child('marriott');
+              tweetRef.child(tweetObjects[i].id).set(tweetObjects[i]);
+              console.log('added')
+
+              marriottTextOptions.subject = 'Marriott Rewards';
+              marriottTextOptions.text = 'Make sure you gain your Marriott Rewards Points! \nView the tweet at: ' +  tweetObjects[i].link;
+              marriottTextOptions.attachments = [{
+                filename: 'image.png',
+                path: tweetObjects[i].image,
+                cid: marriottTextOptions.from
+              }]
+              // send text
+              transporter.sendMail(marriottTextOptions, (error, info) => {
+                if (error) {
+                  console.log(error);
+                }
+                console.log('text sent!');
+              })
+            };
+          });
+        }
+    res.send('Marriott Scrapper: Done')
+    };
+  });
+});
+
 
 app.listen('8000');
 exports = module.exports = app;

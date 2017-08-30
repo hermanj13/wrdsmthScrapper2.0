@@ -94,8 +94,13 @@ app.get('/wrdsmth', function(req, res) {
             wrdsmthEmailOptions.html = '<div style="text-align:center"><h1>New WRDSMTH item for sale! </h1><h2>' + savedPrints[i] + '</h2><h3>This item costs: ' + prices[i] + '</h3><h4>To purchase visit: <a href="' + links[i] + '">' + links[i] + '</a><br /><br /><img height="500" src="' + images[i] + '" /></div>';
 
             wrdsmthTextOptions.subject = 'New WRDSMTH Item';
-            wrdsmthTextOptions.text = 'Check your email for details.';
-
+            wrdsmthTextOptions.text = 'Print Name: ' + savedPrints[i] + "\nPrice: "
+            + prices[i] + '\nLink: ' + links[i];
+            wrdsmthTextOptions.attachments = [{
+              filename: 'image.png',
+              path: images[i],
+              cid: wrdsmthTextOptions.from
+            }]
             var printsRef = database.ref().child('wrdsmthPrints');
             printsRef.child(prints[i]).set(newPrint);
             // send text

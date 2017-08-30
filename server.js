@@ -169,16 +169,16 @@ app.get('/movies', function(req, res) {
               console.log('email sent!');
             })
 
-            marriottTextOptions.subject = 'New YIFY Movie';
-            marriottTextOptions.text = 'Movie name: ' + saveTitle[i] + "\nYear: "
+            yifyTextOptions.subject = 'New YIFY Movie';
+            yifyTextOptions.text = 'Movie name: ' + saveTitle[i] + "\nYear: "
             + year[i] + '\nRating: ' + rating[i];
-            marriottTextOptions.attachments = [{
+            yifyTextOptions.attachments = [{
               filename: 'image.png',
               path: image[i],
-              cid: marriottTextOptions.from
+              cid: yifyTextOptions.from
             }]
             // send text
-            transporter.sendMail(marriottTextOptions, (error, info) => {
+            transporter.sendMail(yifyTextOptions, (error, info) => {
               if (error) {
                 console.log(error);
               }

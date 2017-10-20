@@ -6,12 +6,13 @@ var nodemailer = require('nodemailer');
 var Twitter = require('twitter');
 
 var contactInfo = require('./classified/contact');
-var wrdsmthEmailClient = contactInfo.wrdsmth
-var yifyEmailClient = contactInfo.yify
-var marriottClient = contactInfo.marriott
+var wrdsmthEmailClient = contactInfo.wrdsmth;
+var yifyEmailClient = contactInfo.yify;
+var marriottClient = contactInfo.marriott;
+var swizzlerClient = contactInfo.swizzlers;
 var api = require('./classified/api');
 var config = api.config;
-var twitterInfo = api.twitter
+var twitterInfo = api.twitter;
 firebase.initializeApp(config);
 var database = firebase.database();
 
@@ -33,12 +34,17 @@ var wrdsmthEmailOptions = {
 var yifyEmailOptions = {
   from: yifyEmailClient.from,
   to: yifyEmailClient.to,
-}
+};
 
 var yifyTextOptions = {
   from: yifyEmailClient.from,
   to: yifyEmailClient.phone
-}
+};
+
+var swizzlerTextOptions = {
+  from: swizzlerClient.from,
+  to: swizzlerClient.phone
+};
 
 var wrdsmthTextOptions = {
   from: wrdsmthEmailClient.from,
@@ -48,7 +54,7 @@ var wrdsmthTextOptions = {
 var marriottTextOptions = {
   from: marriottClient.from,
   to: marriottClient.phone
-}
+};
 
 app.get('/wrdsmth', function(req, res) {
   osmosis
@@ -249,6 +255,61 @@ app.get('/marriott', function(req,res){
           });
         }
     res.send('Marriott Scrapper: Done')
+    };
+  });
+});
+
+app.get('/swizzlers', function(req,res){
+  var client = new Twitter({
+    consumer_key: twitterInfo.consumer_key,
+    consumer_secret: twitterInfo.consumer_secret,
+    access_token_key: twitterInfo.access_token_key,
+    access_token_secret: twitterInfo.access_token_secret
+  })
+  params= {q: 'ballston exclude:nativeretweets exclude:retweets -tomorrow, -yesterday   from:swizzlerfoods'}
+  client.get('search/tweets', params, function(error, tweets, repsponse){
+    if(error){
+      console.log(error)
+    }
+    else{
+      // res.send(tweets)
+      var tweetObjects = []
+      for(let i = 0; i< tweets.statuses.length; i++){
+        var newTweet = {
+          id : tweets.statuses[i].id,
+          date: tweets.statuses[i].created_at,
+          image: 'http://gph.to/2zETZ2C'
+        }
+        tweetObjects.push(newTweet)
+      }
+        for(let i = 0; i < tweetObjects.length; i++){
+          database.ref('/swizzler').child(tweetObjects[i].id).once("value", function(snapshot) {
+            var userData = snapshot.val();
+            if (userData) {
+              console.log('in database');
+            } else {
+              var tweetRef = database.ref().child('swizzler');
+              tweetRef.child(tweetObjects[i].id).set(tweetObjects[i]);
+              console.log('added')
+
+              swizzlerTextOptions.subject = 'Swizzlers!';
+              swizzlerTextOptions.text = 'Swizzlers will be here today!';
+              swizzlerTextOptions.attachments = [{
+                filename: 'image.png',
+                path: tweetObjects[i].image,
+                cid: swizzlerTextOptions.from
+              }]
+              // send text
+              transporter.sendMail(swizzlerTextOptions, (error, info) => {
+                if (error) {
+                  console.log(error);
+                }
+                console.log('text sent!');
+              })
+            };
+          });
+        }
+    res.send('Swizzlers Scrapper: Done')
     };
   });
 });

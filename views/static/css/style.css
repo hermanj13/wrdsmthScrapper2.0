@@ -1,0 +1,16 @@
+body{
+  background: #910404;
+}
+h1{
+  font-size: 11vh;
+  color:white;
+}
+th{
+  width: 35%;
+}
+tr{
+  text-align: center;
+}
+.number{
+  width: 10%;
+}

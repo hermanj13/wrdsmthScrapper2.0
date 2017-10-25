@@ -1,6 +1,7 @@
 var express = require('express');
 const osmosis = require('osmosis');
 var app = express();
+var path    = require("path");
 var firebase = require('firebase');
 var nodemailer = require('nodemailer');
 var Twitter = require('twitter');
@@ -15,6 +16,9 @@ var config = api.config;
 var twitterInfo = api.twitter;
 firebase.initializeApp(config);
 var database = firebase.database();
+
+app.use(express.static(path.join(__dirname, "./views/static")));
+
 
 var transporter = nodemailer.createTransport({
   host: wrdsmthEmailClient.host,
@@ -313,6 +317,10 @@ app.get('/swizzlers', function(req,res){
     };
   });
 });
+
+app.get('/partners',function(req,res){
+  res.sendFile(path.join(__dirname+'/views/index.html'))
+})
 
 
 app.listen('8000');

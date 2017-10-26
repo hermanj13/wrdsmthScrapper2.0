@@ -5,6 +5,9 @@ var path    = require("path");
 var firebase = require('firebase');
 var nodemailer = require('nodemailer');
 var Twitter = require('twitter');
+const jsonfile = require('jsonfile');
+const file = "./static/js/students.json";
+
 
 var contactInfo = require('./classified/contact');
 var wrdsmthEmailClient = contactInfo.wrdsmth;
@@ -17,8 +20,13 @@ var twitterInfo = api.twitter;
 firebase.initializeApp(config);
 var database = firebase.database();
 
-app.use(express.static(path.join(__dirname, "./views/static")));
-
+app.use(express.static(path.join(__dirname, "./static")));
+app.set('views', path.join(__dirname, './views'));
+app.set('view engine', 'ejs');
+var bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
 
 var transporter = nodemailer.createTransport({
   host: wrdsmthEmailClient.host,
@@ -319,9 +327,27 @@ app.get('/swizzlers', function(req,res){
 });
 
 app.get('/partners',function(req,res){
-  res.sendFile(path.join(__dirname+'/views/index.html'))
+  res.render("index");
 })
 
+app.get('/attendance',function(req,res){
+  res.render("attendance");
+})
+
+app.post('/attendance/submit', function(req,res){
+  data = JSON.parse(req.body.data);
+  jsonfile.writeFile(file, data, function (err) {
+    res.send(err)
+  })
+})
+
+app.get('/attendance/retrieve', function(req,res){
+  let students = [];
+  jsonfile.readFile(file, function(err, obj) {
+    students = obj;
+    res.json(students)
+  });
+})
 
 app.listen('8000');
 exports = module.exports = app;

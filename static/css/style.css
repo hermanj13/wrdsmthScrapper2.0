@@ -1,9 +1,10 @@
 body{
   background: #910404;
+  color:white;
+
 }
 h1{
   font-size: 11vh;
-  color:white;
 }
 th{
   width: 35%;

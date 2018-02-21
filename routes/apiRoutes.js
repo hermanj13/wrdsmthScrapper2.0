@@ -151,7 +151,7 @@ module.exports = function (app) {
             if (userData) {} else {
               var search = title[i].replace(/\s/g, '+')
               var newBody
-              request(`http://www.omdbapi.com/?apikey=trilogy&t=${search}&plot=full`, function (error, response, body) {
+              request(`http://www.omdbapi.com/?apikey=${api.omdb}&t=${search}&plot=full`, function (error, response, body) {
                 if (error) { console.log(error) }
                 newBody = JSON.parse(body)
               }).then(function () {
